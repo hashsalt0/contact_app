@@ -13,9 +13,9 @@ class ContactsRepository {
   /// adds contact to Hive Box
   Future<ContactModel> addContact(
       {required String firstName,
-      required String lastName,
-      required String phoneNumber,
-      required Uint8List? avatar}) async {
+        required String lastName,
+        required String phoneNumber,
+        required Uint8List? avatar}) async {
     ContactModel createdContact = ContactModel()
       ..firstName = firstName
       ..lastName = lastName

@@ -1,18 +1,20 @@
+import '../values/strings.dart';
+
 class Validations {
 
   static String? nameValidation(String? value){
       if (value == null || value.isEmpty == true) {
-        return 'Name cannot be empty';
+        return Strings.nameValidationError;
       }
       return null;
   }
 
   static String? phoneNumberValidation(String? value){
     if (value == null || value.isEmpty == true) {
-      return 'Phone Number cannot be empty';
+      return Strings.phoneNumberEmptyError;
     }
-    if(!RegExp(r'(^(?:[+0]9)?[0-9]{10,12}$)').hasMatch(value)){
-      return "Invalid Phone Number";
+    if(!RegExp(Strings.phoneNumberRegex).hasMatch(value)){
+      return Strings.invalidPhoneNumberError;
     }
     return null;
   }

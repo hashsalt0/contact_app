@@ -1,15 +1,16 @@
 import 'dart:typed_data';
 
 import 'package:contact_app/src/dialog/image_chooser_dialog.dart';
-import 'package:contact_app/src/repo/contact_model.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/utils/validations.dart';
 import 'package:contact_app/src/values/keys.dart';
-import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
+
+import '../../repo/contact_model.dart';
 import '../../values/strings.dart';
+import 'image_with_placeholder_icon.dart';
 
 /// Screen for adding contacts
 class AddEditContactsPage extends StatefulWidget {
@@ -53,19 +54,8 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
   /// Formats the phone number field as (xx) xxxx xxxx
   void beforeChange(MaskedTextController controller) {
     controller.beforeChange = (previous, next) {
-      final unmasked = next.replaceAll(RegExp(r'[^0-9\+]'), '');
-      if (unmasked.length <= 8) {
-        controller.updateMask('0000-0000', shouldMoveCursorToEnd: false);
-      } else if (unmasked.length <= 9) {
-        controller.updateMask('00000-0000', shouldMoveCursorToEnd: false);
-      } else if (unmasked.length <= 10) {
-        controller.updateMask('(00) 0000-0000', shouldMoveCursorToEnd: false);
-      } else if (unmasked.length <= 11) {
-        controller.updateMask('(000) 00000-0000', shouldMoveCursorToEnd: false);
-      } else if (unmasked.length <= 12) {
-        controller.updateMask('(000) 00000-00000',
-            shouldMoveCursorToEnd: false);
-      }
+      final unmasked = next.replaceAll(RegExp(Strings.digitsRegex), '');
+      controller.updateMask(Strings.phoneNumberMasks[unmasked.length] ?? Strings.defaultPhoneMask, shouldMoveCursorToEnd: false);
       return true;
     };
   }
@@ -111,14 +101,14 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
     );
 
     final picture = SizedBox(
-        width: 120.0,
-        height: 120.0,
+        height: MediaQuery.of(context).size.width * 0.5,
+        width: MediaQuery.of(context).size.width * 0.5,
         child: GestureDetector(
           onTap: () async {
             showDialog(
                 context: context,
                 builder: (BuildContext context) =>
-                    ImageChooserDialog(onImagePick: _onImagePick));
+                    ImageChooserDialog(onImagePicked: _onImagePick));
           },
           child: CircleAvatar(
               child: ImageWithPlaceholderIcon(
@@ -181,12 +171,16 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
   void _submitFormAndPopBack() async {
     if (_formKey.currentState?.validate() == true) {
       ContactModel? contact = widget._contact;
+      String text;
       if (contact != null) {
         /// Contact is provided as argument so updating
         _updateContact(contact);
+        text = Strings.updateContactSuccessMessage;
       } else {
         _addNewContact();
+        text = Strings.createdContactSuccessMessage;
       }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
       Navigator.pop(context);
     }
   }
@@ -205,29 +199,5 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
     contact.lastName = _contactLastName.text;
     contact.phoneNumber = _contactPhoneNumber.unmasked;
     contact.save();
-  }
-}
-
-class ImageWithPlaceholderIcon extends StatelessWidget {
-  const ImageWithPlaceholderIcon({
-    Key? key,
-    required Uint8List? image,
-  })  : _image = image,
-        super(key: key);
-
-  final Uint8List? _image;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_image != null) {
-      return ExtendedImage.memory(_image!,
-          width: 100,
-          height: 100,
-          fit: BoxFit.fill,
-          shape: BoxShape.circle,
-          borderRadius: const BorderRadius.all(Radius.circular(30.0)));
-    } else {
-      return const Icon(Icons.add);
-    }
   }
 }
