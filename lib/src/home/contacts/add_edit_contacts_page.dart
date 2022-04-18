@@ -1,6 +1,7 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:contact_app/src/dialog/image_chooser_dialog.dart';
+import 'package:contact_app/src/repo/contact_model.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/utils/validations.dart';
 import 'package:contact_app/src/values/keys.dart';
@@ -8,34 +9,45 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 import '../../values/strings.dart';
 
 /// Screen for adding contacts
-class AddContactsPage extends StatefulWidget {
-  static String tag = 'add-contact-page';
+class AddEditContactsPage extends StatefulWidget {
+  static String tag = 'add-edit-contact-page';
 
-  const AddContactsPage({Key? key}) : super(key: key);
+  final ContactModel? _contact;
+
+  const AddEditContactsPage({Key? key, ContactModel? contactModel})  : _contact = contactModel,  super(key: key);
 
   @override
-  _AddPageState createState() => _AddPageState();
+  _AddEditContactPageState createState() => _AddEditContactPageState();
 }
 
-class _AddPageState extends State<AddContactsPage> {
+class _AddEditContactPageState extends State<AddEditContactsPage> {
   final _formKey = GlobalKey<FormState>();
   final _contactFirstName = TextEditingController();
   final _contactLastName = TextEditingController();
   final _contactPhoneNumber = MaskedTextController(mask: '0000-0000');
 
-  XFile? _contactPhoto;
+  Uint8List? _contactPhoto;
+  String appTitle = Strings.addContactPageTitle;
 
   @override
   void initState() {
     beforeChange(_contactPhoneNumber);
-    _askPermissions(null);
+    initializeFormFields();
     super.initState();
+  }
+
+  void initializeFormFields() {
+    ContactModel? contact = widget._contact;
+    if(contact != null){
+      _contactPhoto = contact.avatar;
+      _contactFirstName.text = contact.firstName;
+      _contactLastName.text = contact.lastName;
+      _contactPhoneNumber.text = contact.phoneNumber;
+      appTitle = Strings.editContactPageTitle;
+    }
   }
 
   /// Formats the phone number field as (xx) xxxx xxxx
@@ -60,6 +72,7 @@ class _AddPageState extends State<AddContactsPage> {
 
   @override
   Widget build(BuildContext context) {
+
     TextFormField inputFirstName = TextFormField(
         key: Keys.inputFirstNameKey,
         textAlignVertical: TextAlignVertical.center,
@@ -105,11 +118,7 @@ class _AddPageState extends State<AddContactsPage> {
             showDialog(
                 context: context,
                 builder: (BuildContext context) =>
-                    ImageChooserDialog(onImagePick: (image) {
-                      setState(() {
-                        _contactPhoto = image;
-                      });
-                    }));
+                    ImageChooserDialog(onImagePick: _onImagePick));
           },
           child: CircleAvatar(
               child: ImageWithPlaceholderIcon(
@@ -142,7 +151,7 @@ class _AddPageState extends State<AddContactsPage> {
             Navigator.of(context).pop();
           },
         ),
-        title: const Text(Strings.addContactPageTitle),
+        title: Text(appTitle),
         actions: <Widget>[
           SizedBox(
             width: 80,
@@ -160,78 +169,65 @@ class _AddPageState extends State<AddContactsPage> {
     );
   }
 
+  Future<void> _onImagePick(image) async {
+    Uint8List photo = await image.readAsBytes();
+    setState(() {
+      _contactPhoto = photo;
+    });
+  }
+
   /// creates a contact by validating and submitting form data;
   /// pop back to previous screen
   void _submitFormAndPopBack() async {
     if (_formKey.currentState?.validate() == true) {
-      PermissionStatus permissionStatus = await _getContactPermission();
-      if (permissionStatus.isGranted) {
-        ServiceLocator.instance.contactsRepository.addContact(
-            firstName: _contactFirstName.text,
-            lastName: _contactLastName.text,
-            phoneNumber: _contactPhoneNumber.unmasked,
-            avatar: _contactPhoto);
-        Navigator.pop(context);
+      ContactModel? contact = widget._contact;
+      if (contact != null) {
+        /// Contact is provided as argument
+        _updateContact(contact);
       } else {
-        _handleInvalidPermissions(permissionStatus);
+        _addNewContact();
       }
+      Navigator.pop(context);
     }
   }
 
-  /// ask for permission and the navigates to another screen as specified by [routeName]
-  Future<void> _askPermissions(String? routeName) async {
-    PermissionStatus permissionStatus = await _getContactPermission();
-    if (permissionStatus == PermissionStatus.granted) {
-      if (routeName != null) {
-        Navigator.of(context).pushNamed(routeName);
-      }
-    } else {
-      _handleInvalidPermissions(permissionStatus);
-    }
+  void _addNewContact() {
+    ServiceLocator.instance.contactsRepository.addContactRaw(
+        firstName: _contactFirstName.text,
+        lastName: _contactLastName.text,
+        phoneNumber: _contactPhoneNumber.unmasked,
+        avatar: _contactPhoto);
   }
 
-  /// Retrieves the contact permission status
-  Future<PermissionStatus> _getContactPermission() async {
-    PermissionStatus permission = await Permission.contacts.status;
-    if (permission != PermissionStatus.granted &&
-        permission != PermissionStatus.permanentlyDenied) {
-      PermissionStatus permissionStatus = await Permission.contacts.request();
-      return permissionStatus;
-    } else {
-      return permission;
-    }
-  }
-
-  /// Handles [PermissionStatus] when it is denied by showing a snackbar.
-  void _handleInvalidPermissions(PermissionStatus permissionStatus) {
-    if (permissionStatus == PermissionStatus.denied) {
-      const snackBar = SnackBar(content: Text('Access to contact data denied'));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
-      const snackBar =
-          SnackBar(content: Text('Contact data not available on device'));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
+  void _updateContact(ContactModel contact) {
+    contact.avatar = _contactPhoto;
+    contact.firstName = _contactFirstName.text;
+    contact.lastName = _contactLastName.text;
+    contact.phoneNumber = _contactPhoneNumber.unmasked;
+    contact.save();
   }
 }
 
 class ImageWithPlaceholderIcon extends StatelessWidget {
   const ImageWithPlaceholderIcon({
     Key? key,
-    required XFile? image,
+    required Uint8List? image,
   })  : _image = image,
         super(key: key);
 
-  final XFile? _image;
+  final Uint8List? _image;
 
   @override
   Widget build(BuildContext context) {
-    if (_image == null) return const Icon(Icons.add);
-    return ExtendedImage.file(File(_image!.path),
-        width: 100,
-        height: 100,
-        fit: BoxFit.fill,
-        shape: BoxShape.circle,
-        borderRadius: const BorderRadius.all(Radius.circular(30.0)));
+    if (_image != null) {
+      return ExtendedImage.memory(_image!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.fill,
+          shape: BoxShape.circle,
+          borderRadius: const BorderRadius.all(Radius.circular(30.0)));
+    } else {
+      return const Icon(Icons.add);
+    }
   }
 }
