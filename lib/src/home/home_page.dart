@@ -1,6 +1,7 @@
+import 'package:contact_app/src/home/contacts/contacts_list_page.dart';
 import 'package:flutter/material.dart';
 import '../values/strings.dart';
-import 'contacts/add_contacts_page.dart';
+import 'contacts/add_edit_contacts_page.dart';
 
 class HomePage extends StatelessWidget {
   static const tag = "/";
@@ -17,7 +18,7 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 20.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed( context, AddContactsPage.tag);
+                    Navigator.pushNamed( context, AddEditContactsPage.tag);
                   },
                   child: const Icon(
                     Icons.add,
@@ -26,9 +27,7 @@ class HomePage extends StatelessWidget {
                 ))
           ],
         ),
-        body: Center(
-          child: Container(// TODO ),
-              ),
-        ));
+        body: const Center(child: ContactsListPage()),
+        );
   }
 }

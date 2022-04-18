@@ -9,10 +9,10 @@ import '../values/strings.dart';
 /// @see [ImagePicker]
 
 class ImageChooserDialog extends StatelessWidget {
-  final Function(XFile image) _onImagePicked;
+  final Future<void> Function(XFile image) _onImagePicked;
 
   const ImageChooserDialog(
-      {Key? key, required void Function(XFile image) onImagePick})
+      {Key? key, required Future<void> Function(XFile image) onImagePick})
       : _onImagePicked = onImagePick,
         super(key: key);
 
@@ -71,6 +71,6 @@ class ImageChooserDialog extends StatelessWidget {
       required ImageSource source}) async {
     XFile? image = await picker.pickImage(source: source);
     Navigator.of(context).pop();
-    _onImagePicked(image!);
+    await _onImagePicked(image!);
   }
 }

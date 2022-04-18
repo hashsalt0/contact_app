@@ -9,4 +9,6 @@ class Strings {
   static const firstNameLabel = 'First Nome';
 
   static const addContactPageTitle = "Add a new Contact";
+
+  static const String editContactPageTitle = "Edit Contact";
 }
