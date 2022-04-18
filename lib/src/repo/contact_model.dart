@@ -22,7 +22,6 @@ class ContactModel extends HiveObject {
   String toString() {
     return "first name = $firstName\nlast name =$lastName\nphone Number=$phoneNumber";
   }
-
 }
 
 class ContactModelAdapter extends TypeAdapter<ContactModel>{

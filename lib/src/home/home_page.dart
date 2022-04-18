@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../values/strings.dart';
-import 'contacts/add_contacts_page.dart';
+import 'contacts/add_edit_contacts_page.dart';
 
 class HomePage extends StatelessWidget {
   static const tag = "/";
@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 20.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed( context, AddContactsPage.tag);
+                    Navigator.pushNamed( context, AddEditContactsPage.tag);
                   },
                   child: const Icon(
                     Icons.add,

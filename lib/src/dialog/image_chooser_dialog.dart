@@ -9,12 +9,10 @@ import '../values/strings.dart';
 /// @see [ImagePicker]
 
 class ImageChooserDialog extends StatelessWidget {
-  final Function(XFile image) _onImagePicked;
+  final Function(XFile image) onImagePicked;
 
-  const ImageChooserDialog(
-      {Key? key, required void Function(XFile image) onImagePick})
-      : _onImagePicked = onImagePick,
-        super(key: key);
+  const ImageChooserDialog({Key? key, required this.onImagePicked})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,54 +21,37 @@ class ImageChooserDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       //this right here
       child: SizedBox(
-          height: 300.0,
-          width: 300.0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: IconButton(
-                    iconSize: 90,
-                    icon: const Icon(
-                      Icons.camera_alt,
-                      semanticLabel: Strings.labelCamera,
-                    ),
-                    onPressed: () {
-                      _pickImageAndPopBack(
-                          context: context,
-                          picker: picker,
-                          source: ImageSource.camera);
-                    },
-                  )),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: IconButton(
-                    iconSize: 90,
-                    icon: const Icon(
-                      Icons.browse_gallery_rounded,
-                      semanticLabel: Strings.labelGallery,
-                    ),
-                    onPressed: () {
-                      _pickImageAndPopBack(
-                          context: context,
-                          picker: picker,
-                          source: ImageSource.gallery);
-                    }),
-              )
-            ],
-          )),
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(
+              Icons.camera_alt,
+              semanticLabel: Strings.labelCamera,
+            ),
+            onPressed: () async {
+              XFile? image = await picker.pickImage(source: ImageSource.camera);
+              Navigator.of(context).pop();
+              onImagePicked(image!);
+            },
+            label: const Text(Strings.labelCamera),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(
+              Icons.browse_gallery_rounded,
+              semanticLabel: Strings.labelGallery,
+            ),
+            onPressed: () async {
+              XFile? image =
+                  await picker.pickImage(source: ImageSource.gallery);
+              Navigator.of(context).pop();
+              onImagePicked(image!);
+            },
+            label: const Text(Strings.labelGallery),
+          )
+        ],
+      )),
     );
-  }
-
-  /// helper function to call [ImagePicker] to browse for image and pop back
-  /// to the previous screen
-  void _pickImageAndPopBack(
-      {required BuildContext context,
-      required ImagePicker picker,
-      required ImageSource source}) async {
-    XFile? image = await picker.pickImage(source: source);
-    Navigator.of(context).pop();
-    _onImagePicked(image!);
   }
 }
