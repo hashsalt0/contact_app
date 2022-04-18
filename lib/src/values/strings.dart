@@ -10,5 +10,12 @@ class Strings {
 
   static const addContactPageTitle = "Add a new Contact";
 
-  static const String editContactPageTitle = "Edit Contact";
+  static const editContactPageTitle = "Edit Contact";
+
+  static const confirmDelete = "Delete Contact";
+
+  static const confirmDeleteDescription = "Do you want to delete the selected contact";
+
+  static const cancel = "Cancel";
+  static const ok = "OK";
 }

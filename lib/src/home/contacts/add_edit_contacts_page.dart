@@ -176,13 +176,13 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
     });
   }
 
-  /// creates a contact by validating and submitting form data;
+  /// creates/updates a contact by validating and submitting form data;
   /// pop back to previous screen
   void _submitFormAndPopBack() async {
     if (_formKey.currentState?.validate() == true) {
       ContactModel? contact = widget._contact;
       if (contact != null) {
-        /// Contact is provided as argument
+        /// Contact is provided as argument so updating
         _updateContact(contact);
       } else {
         _addNewContact();
@@ -192,7 +192,7 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
   }
 
   void _addNewContact() {
-    ServiceLocator.instance.contactsRepository.addContactRaw(
+    ServiceLocator.instance.contactsRepository.addContact(
         firstName: _contactFirstName.text,
         lastName: _contactLastName.text,
         phoneNumber: _contactPhoneNumber.unmasked,

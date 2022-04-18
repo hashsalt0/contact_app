@@ -5,27 +5,13 @@ import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/values/config.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:image_picker/image_picker.dart';
 
 /// Defines Operations related to contact
 class ContactsRepository {
   late final Box<ContactModel> _contacts;
 
-  /// adds contact to Device
-  /// see [Contact]
-  void addContact(
-      {required String firstName,
-      required String lastName,
-      required String phoneNumber,
-      required XFile? avatar}) async {
-    addContactRaw(
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        avatar: await avatar?.readAsBytes());
-  }
-
-  Future<ContactModel> addContactRaw(
+  /// adds contact to Hive Box
+  Future<ContactModel> addContact(
       {required String firstName,
       required String lastName,
       required String phoneNumber,
@@ -51,7 +37,8 @@ class ContactsRepository {
       /// Returns when there is data is already present in hive
       /// but have side effect when hive data gets cleared it will again
       /// fetch all the data from contacts when the app starts again
-      if(_contacts.values.isNotEmpty) return;
+      if (_contacts.values.isNotEmpty) return;
+
       /// Retrieving the contacts using FlutterContacts
       List<Contact> contacts = await FlutterContacts.getContacts(
           withProperties: true, withPhoto: true);
@@ -59,13 +46,8 @@ class ContactsRepository {
           .i("Retrieved the contacts from device contacts list");
 
       /// Transforming Contact to ContactModel and saving them to hive.
-      await _contacts.putAll(Map.fromEntries(contacts.map((e) => MapEntry(
-          e.id,
-          ContactModel()
-            ..firstName = e.displayName.split(" ").first
-            ..lastName = e.displayName.split(" ").last
-            ..phoneNumber = e.phones.first.number
-            ..avatar = e.photo))));
+      await _contacts.putAll(Map.fromEntries(
+          contacts.map((e) => MapEntry(e.id, _toContactModel(e)))));
     } catch (e, stackTrace) {
       ServiceLocator.instance.logger
           .e("failed to update contact", e, stackTrace);
@@ -81,5 +63,31 @@ class ContactsRepository {
 
   List<ContactModel> getContactsList() {
     return _contacts.values.toList();
+  }
+
+  ContactModel _toContactModel(Contact e) {
+    try {
+      List<String> name = e.displayName.split(" ");
+      String firstName = "", lastName = "";
+      if(name.length == 1) {
+        firstName = name.first;
+      }else if(name.length > 1) {
+        firstName = name.first;
+        lastName = name.last;
+      }
+      String phoneNumber = "";
+      if(e.phones.isNotEmpty){
+        phoneNumber = e.phones.elementAt(0).number;
+      }
+      return ContactModel()
+        ..firstName = firstName
+        ..lastName = lastName
+        ..phoneNumber = phoneNumber
+        ..avatar = e.photo;
+    } catch (e, stackTrace) {
+      ServiceLocator.instance.logger
+          .e("failed to convert Contact $e to ContactModel ", e, stackTrace);
+    }
+    return ContactModel();
   }
 }

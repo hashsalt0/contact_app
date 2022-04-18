@@ -7,6 +7,8 @@ import 'package:contact_app/src/values/config.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 
+import '../../values/strings.dart';
+
 /// Contact list widget
 class ContactsListPage extends StatefulWidget {
   static String tag = 'contacts-list-page';
@@ -47,13 +49,32 @@ class _ContactsListPageState extends State<ContactsListPage> {
                       trailing: GestureDetector(
                         child: const Icon(Icons.delete),
                         onTap: () async {
-                          contact.delete();
+                          showDialog<String>(
+                              context: context,
+                              builder: (BuildContext context) => AlertDialog(
+                                    title: const Text(Strings.confirmDelete),
+                                    content: const Text(
+                                        Strings.confirmDeleteDescription),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, Strings.cancel),
+                                        child: const Text(Strings.cancel),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          contact.delete();
+                                          Navigator.pop(context, Strings.ok);
+                                        },
+                                        child: const Text(Strings.ok),
+                                      ),
+                                    ],
+                                  ));
                         },
                       ),
                       leading: CircleAvatar(
                           foregroundImage: _getAvatar(contact),
-                          child: Text(
-                              "${contact.firstName.characters.first.toUpperCase()} ${contact.lastName.characters.first.toUpperCase()}")),
+                          child: Text(_getNameInitials(contact))),
                       onTap: () async {
                         Navigator.pushNamed(context, AddEditContactsPage.tag,
                             arguments: contact);
@@ -63,7 +84,15 @@ class _ContactsListPageState extends State<ContactsListPage> {
         });
   }
 
-  _getAvatar(ContactModel contactModel) {
+  String _getNameInitials(ContactModel contact){
+    /// Not using string buffer because adding only a ruins/character
+    String toReturn = "";
+    if(contact.firstName.characters.isNotEmpty) toReturn += contact.firstName.characters.first.toUpperCase();
+    if(contact.lastName.characters.isNotEmpty) toReturn += contact.lastName.characters.first.toUpperCase();
+    return toReturn;
+  }
+
+  ImageProvider? _getAvatar(ContactModel contactModel) {
     Uint8List? avatar = contactModel.avatar;
     if (avatar != null) {
       return Image.memory(avatar).image;
