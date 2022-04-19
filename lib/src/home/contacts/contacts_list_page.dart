@@ -1,13 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:contact_app/src/home/contacts/add_edit_contacts_page.dart';
+import 'package:contact_app/src/home/contacts/add_edit_contacts/add_edit_contacts_page.dart';
 import 'package:contact_app/src/repo/contact_model.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/values/config.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:provider/provider.dart';
 
 import '../../values/strings.dart';
+import 'add_edit_contacts/add_edit_contact_view_model.dart';
 
 /// Contact list widget
 class ContactsListPage extends StatefulWidget {
@@ -75,8 +77,10 @@ class _ContactsListPageState extends State<ContactsListPage> {
                         foregroundImage: _getAvatar(contact),
                         child: Text(_getNameInitials(contact))),
                     onTap: () async {
-                      Navigator.pushNamed(context, AddEditContactsPage.tag,
-                          arguments: contact);
+                      Provider.of<AddEditContactViewModel>(context,
+                              listen: false)
+                          .contact = contact;
+                      Navigator.pushNamed(context, AddEditContactsPage.tag);
                     });
               });
         }

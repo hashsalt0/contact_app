@@ -6,16 +6,16 @@ import 'package:hive_flutter/adapters.dart';
 @HiveType(typeId: 0)
 class ContactModel extends HiveObject {
   @HiveField(0)
-  late String firstName;
+  String firstName = "";
 
   @HiveField(1)
-  late String lastName;
+  String lastName = "";
 
   @HiveField(2)
-  late String phoneNumber;
+  String phoneNumber = "";
 
   @HiveField(3)
-  late Uint8List? avatar;
+  Uint8List? avatar;
 
   @override
   String toString() =>

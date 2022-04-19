@@ -1,77 +1,48 @@
-import 'dart:typed_data';
-
 import 'package:contact_app/src/dialog/image_chooser_dialog.dart';
-import 'package:contact_app/src/service_locator.dart';
+import 'package:contact_app/src/home/contacts/add_edit_contacts/add_edit_contact_view_model.dart';
 import 'package:contact_app/src/utils/validations.dart';
 import 'package:contact_app/src/values/keys.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-import '../../repo/contact_model.dart';
-import '../../values/strings.dart';
+import '../../../values/strings.dart';
 import 'image_with_placeholder_icon.dart';
 
 /// Screen for adding contacts
-class AddEditContactsPage extends StatefulWidget {
+class AddEditContactsPage extends StatelessWidget {
   static String tag = 'add-edit-contact-page';
 
-  final ContactModel? _contact;
+  static final _formKey = GlobalKey<FormState>();
 
-  const AddEditContactsPage({Key? key, ContactModel? contactModel})
-      : _contact = contactModel,
-        super(key: key);
+  const AddEditContactsPage({Key? key}) : super(key: key);
 
   @override
-  _AddEditContactPageState createState() => _AddEditContactPageState();
-}
+  Widget build(BuildContext context) {
+    AddEditContactViewModel model =
+        Provider.of<AddEditContactViewModel>(context);
 
-class _AddEditContactPageState extends State<AddEditContactsPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _contactFirstName = TextEditingController();
-  final _contactLastName = TextEditingController();
-  final _contactPhoneNumber = MaskedTextController(mask: '0000-0000');
+    final phoneNumberController = MaskedTextController(
+        mask: '0000-0000',
+        text: context.watch<AddEditContactViewModel>().contact.phoneNumber);
 
-  Uint8List? _contactPhoto;
-  String appTitle = Strings.addContactPageTitle;
-
-  @override
-  void initState() {
-    beforeChange(_contactPhoneNumber);
-    initializeFormFields();
-    super.initState();
-  }
-
-  void initializeFormFields() {
-    ContactModel? contact = widget._contact;
-    if (contact != null) {
-      _contactPhoto = contact.avatar;
-      _contactFirstName.text = contact.firstName;
-      _contactLastName.text = contact.lastName;
-      _contactPhoneNumber.text = contact.phoneNumber;
-      appTitle = Strings.editContactPageTitle;
-    }
-  }
-
-  /// Formats the phone number field as (xx) xxxx xxxx
-  void beforeChange(MaskedTextController controller) {
-    controller.beforeChange = (previous, next) {
+    phoneNumberController.beforeChange = (previous, next) {
       final unmasked = next.replaceAll(RegExp(Strings.digitsRegex), '');
-      controller.updateMask(
+      phoneNumberController.updateMask(
           Strings.phoneNumberMasks[unmasked.length] ?? Strings.defaultPhoneMask,
           shouldMoveCursorToEnd: false);
       return true;
     };
-  }
 
-  @override
-  Widget build(BuildContext context) {
     TextFormField inputFirstName = TextFormField(
         key: Keys.inputFirstNameKey,
         textAlignVertical: TextAlignVertical.center,
         keyboardType: TextInputType.text,
         inputFormatters: [LengthLimitingTextInputFormatter(45)],
-        controller: _contactFirstName,
+        onChanged: model.setFirstName,
+        controller: TextEditingController(
+            text: context.watch<AddEditContactViewModel>().contact.firstName),
         autofocus: true,
         decoration: const InputDecoration(
             labelText: Strings.firstNameLabel, icon: Icon(Icons.person)),
@@ -82,7 +53,9 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
         textAlignVertical: TextAlignVertical.center,
         keyboardType: TextInputType.text,
         inputFormatters: [LengthLimitingTextInputFormatter(45)],
-        controller: _contactLastName,
+        onChanged: model.setLastName,
+        controller: TextEditingController(
+            text: context.watch<AddEditContactViewModel>().contact.lastName),
         decoration: const InputDecoration(
             labelText: Strings.lastNameLabel, icon: Icon(Icons.person)),
         validator: Validations.nameValidation);
@@ -92,10 +65,11 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
       textAlignVertical: TextAlignVertical.center,
       keyboardType: TextInputType.phone,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\+]*'))],
-      controller: _contactPhoneNumber,
+      onChanged: model.setPhoneNumber,
+      controller: phoneNumberController,
       maxLength: 16,
       validator: (_) =>
-          Validations.phoneNumberValidation(_contactPhoneNumber.unmasked),
+          Validations.phoneNumberValidation(phoneNumberController.unmasked),
       decoration: const InputDecoration(
         labelText: Strings.phoneNumberLabel,
         icon: Icon(Icons.phone),
@@ -109,12 +83,10 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
           onTap: () async {
             showDialog(
                 context: context,
-                builder: (BuildContext context) =>
-                    ImageChooserDialog(onImagePicked: _onImagePick));
+                builder: (BuildContext context) => const ImageChooserDialog());
           },
-          child: CircleAvatar(
-              child: ImageWithPlaceholderIcon(
-                  key: Keys.avatarKey, image: _contactPhoto)),
+          child:
+              const CircleAvatar(child: UserAvatarWidget(key: Keys.avatarKey)),
         ));
 
     ListView content = ListView(
@@ -138,12 +110,12 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(appTitle),
+        title: Text(context.watch<AddEditContactViewModel>().title),
         actions: <Widget>[
           SizedBox(
             width: 80,
@@ -152,7 +124,9 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
                 'Save',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              onPressed: _submitFormAndPopBack,
+              onPressed: () {
+                _submitFormAndPopBack(context, model);
+              },
             ),
           )
         ],
@@ -161,45 +135,19 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
     );
   }
 
-  Future<void> _onImagePick(image) async {
-    Uint8List photo = await image.readAsBytes();
-    setState(() {
-      _contactPhoto = photo;
-    });
-  }
-
   /// creates/updates a contact by validating and submitting form data;
   /// pop back to previous screen
-  void _submitFormAndPopBack() async {
+  void _submitFormAndPopBack(
+      BuildContext context, AddEditContactViewModel model) {
     if (_formKey.currentState?.validate() == true) {
-      ContactModel? contact = widget._contact;
-      String text;
-      if (contact != null) {
-        /// Contact is provided as argument so updating
-        _updateContact(contact);
-        text = Strings.updateContactSuccessMessage;
+      if (model.submit()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text(Strings.updateContactSuccessMessage)));
       } else {
-        _addNewContact();
-        text = Strings.createdContactSuccessMessage;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text(Strings.createdContactSuccessMessage)));
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
       Navigator.pop(context);
     }
-  }
-
-  void _addNewContact() {
-    ServiceLocator.instance.contactsRepository.addContact(
-        firstName: _contactFirstName.text,
-        lastName: _contactLastName.text,
-        phoneNumber: _contactPhoneNumber.unmasked,
-        avatar: _contactPhoto);
-  }
-
-  void _updateContact(ContactModel contact) {
-    contact.avatar = _contactPhoto;
-    contact.firstName = _contactFirstName.text;
-    contact.lastName = _contactLastName.text;
-    contact.phoneNumber = _contactPhoneNumber.unmasked;
-    contact.save();
   }
 }

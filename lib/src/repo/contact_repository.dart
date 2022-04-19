@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:contact_app/src/repo/contact_model.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/values/config.dart';
@@ -11,25 +9,15 @@ class ContactsRepository {
   late final Box<ContactModel> _contacts;
 
   /// adds contact to Hive Box
-  Future<ContactModel> addContact(
-      {required String firstName,
-        required String lastName,
-        required String phoneNumber,
-        required Uint8List? avatar}) async {
-    ContactModel createdContact = ContactModel()
-      ..firstName = firstName
-      ..lastName = lastName
-      ..phoneNumber = phoneNumber
-      ..avatar = avatar;
+  void addContact(ContactModel toCreate) async {
     try {
-      await _contacts.add(createdContact);
+      await _contacts.add(toCreate);
       ServiceLocator.instance.logger.i("created a new contact");
-      ServiceLocator.instance.logger.v(createdContact.toString());
+      ServiceLocator.instance.logger.v(toCreate.toString());
     } catch (e, stackTrace) {
       ServiceLocator.instance.logger
           .e("failed to create contact", e, stackTrace);
     }
-    return createdContact;
   }
 
   void loadContacts() async {

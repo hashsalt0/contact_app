@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import '../home/contacts/add_edit_contacts/add_edit_contact_view_model.dart';
 import '../values/strings.dart';
 
 /// Widget for choosing image from gallery or camera
@@ -9,9 +11,7 @@ import '../values/strings.dart';
 /// @see [ImagePicker]
 
 class ImageChooserDialog extends StatelessWidget {
-  final Function(XFile image) onImagePicked;
-
-  const ImageChooserDialog({Key? key, required this.onImagePicked})
+  const ImageChooserDialog({Key? key})
       : super(key: key);
 
   @override
@@ -33,7 +33,7 @@ class ImageChooserDialog extends StatelessWidget {
             onPressed: () async {
               XFile? image = await picker.pickImage(source: ImageSource.camera);
               Navigator.of(context).pop();
-              onImagePicked(image!);
+              Provider.of<AddEditContactViewModel>(context, listen: false).setContactPhoto(image);
             },
             label: const Text(Strings.labelCamera),
           ),
@@ -46,7 +46,7 @@ class ImageChooserDialog extends StatelessWidget {
               XFile? image =
                   await picker.pickImage(source: ImageSource.gallery);
               Navigator.of(context).pop();
-              onImagePicked(image!);
+              context.watch<AddEditContactViewModel>().setContactPhoto(image);
             },
             label: const Text(Strings.labelGallery),
           )
