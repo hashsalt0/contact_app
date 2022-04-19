@@ -22,11 +22,11 @@ class Strings {
   static const digitsRegex = r'[^0-9\+]';
 
   static const phoneNumberMasks = {
-    8  : '0000-0000',
-    9  : '00000-0000',
-    10 : '(00) 0000-0000',
-    11 : '(000) 00000-0000',
-    12 : '(000) 00000-00000'
+    8: '0000-0000',
+    9: '00000-0000',
+    10: '(00) 0000-0000',
+    11: '(000) 00000-0000',
+    12: '(000) 00000-00000'
   };
 
   static const save = 'Save';
@@ -37,4 +37,12 @@ class Strings {
 
   static const updateContactSuccessMessage = "Successfully updated contact";
 
+  static const confirmDelete = "Delete Contact";
+
+  static const confirmDeleteDescription =
+      "Do you want to delete the selected contact";
+
+  static const cancel = "Cancel";
+
+  static const ok = "OK";
 }

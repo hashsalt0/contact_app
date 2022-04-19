@@ -9,10 +9,11 @@ class AppRoutes {
   static MaterialPageRoute? contactsAppRoutes(RouteSettings settings) {
     Map<String, WidgetBuilder> routes = {
       HomePage.tag: (context) => const HomePage(),
-      AddEditContactsPage.tag: (context) => AddEditContactsPage(contactModel: settings.arguments as ContactModel?)
+      AddEditContactsPage.tag: (context) =>
+          AddEditContactsPage(contactModel: settings.arguments as ContactModel?)
     };
     WidgetBuilder? builder = routes[settings.name];
-    if(builder == null) return null;
+    if (builder == null) return null;
     return MaterialPageRoute(builder: (ctx) => builder.call(ctx));
   }
 }

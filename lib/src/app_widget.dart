@@ -8,8 +8,7 @@ class AppWidget extends StatelessWidget{
   const AppWidget({Key? key}) : super(key: key);
   
   @override
-  Widget build(BuildContext context) {
-    return  const MaterialApp(
+  Widget build(BuildContext context) => const MaterialApp(
       title: Strings.appName,
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
@@ -21,5 +20,4 @@ class AppWidget extends StatelessWidget{
         ],
         onGenerateRoute: AppRoutes.contactsAppRoutes
     );
-  }
 }

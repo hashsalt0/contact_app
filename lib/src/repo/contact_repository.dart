@@ -61,9 +61,7 @@ class ContactsRepository {
     _contacts = await Hive.openBox(Config.boxName);
   }
 
-  List<ContactModel> getContactsList() {
-    return _contacts.values.toList();
-  }
+  List<ContactModel> getContactsList() => _contacts.values.toList();
 
   ContactModel _toContactModel(Contact e) {
     try {

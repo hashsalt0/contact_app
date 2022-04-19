@@ -9,8 +9,7 @@ class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text(Strings.appName),
           actions: <Widget>[
@@ -18,7 +17,7 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 20.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed( context, AddEditContactsPage.tag);
+                    Navigator.pushNamed(context, AddEditContactsPage.tag);
                   },
                   child: const Icon(
                     Icons.add,
@@ -28,6 +27,5 @@ class HomePage extends StatelessWidget {
           ],
         ),
         body: const Center(child: ContactsListPage()),
-        );
-  }
+      );
 }

@@ -4,9 +4,9 @@ import 'package:contact_app/src/dialog/image_chooser_dialog.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/utils/validations.dart';
 import 'package:contact_app/src/values/keys.dart';
+import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:extended_masked_text/extended_masked_text.dart';
 
 import '../../repo/contact_model.dart';
 import '../../values/strings.dart';
@@ -18,7 +18,9 @@ class AddEditContactsPage extends StatefulWidget {
 
   final ContactModel? _contact;
 
-  const AddEditContactsPage({Key? key, ContactModel? contactModel})  : _contact = contactModel,  super(key: key);
+  const AddEditContactsPage({Key? key, ContactModel? contactModel})
+      : _contact = contactModel,
+        super(key: key);
 
   @override
   _AddEditContactPageState createState() => _AddEditContactPageState();
@@ -42,7 +44,7 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
 
   void initializeFormFields() {
     ContactModel? contact = widget._contact;
-    if(contact != null){
+    if (contact != null) {
       _contactPhoto = contact.avatar;
       _contactFirstName.text = contact.firstName;
       _contactLastName.text = contact.lastName;
@@ -55,14 +57,15 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
   void beforeChange(MaskedTextController controller) {
     controller.beforeChange = (previous, next) {
       final unmasked = next.replaceAll(RegExp(Strings.digitsRegex), '');
-      controller.updateMask(Strings.phoneNumberMasks[unmasked.length] ?? Strings.defaultPhoneMask, shouldMoveCursorToEnd: false);
+      controller.updateMask(
+          Strings.phoneNumberMasks[unmasked.length] ?? Strings.defaultPhoneMask,
+          shouldMoveCursorToEnd: false);
       return true;
     };
   }
 
   @override
   Widget build(BuildContext context) {
-
     TextFormField inputFirstName = TextFormField(
         key: Keys.inputFirstNameKey,
         textAlignVertical: TextAlignVertical.center,
@@ -91,9 +94,8 @@ class _AddEditContactPageState extends State<AddEditContactsPage> {
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\+]*'))],
       controller: _contactPhoneNumber,
       maxLength: 16,
-      validator: (_) {
-        return Validations.phoneNumberValidation(_contactPhoneNumber.unmasked);
-      },
+      validator: (_) =>
+          Validations.phoneNumberValidation(_contactPhoneNumber.unmasked),
       decoration: const InputDecoration(
         labelText: Strings.phoneNumberLabel,
         icon: Icon(Icons.phone),

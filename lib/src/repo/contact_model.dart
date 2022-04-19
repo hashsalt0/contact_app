@@ -5,7 +5,6 @@ import 'package:hive_flutter/adapters.dart';
 
 @HiveType(typeId: 0)
 class ContactModel extends HiveObject {
-
   @HiveField(0)
   late String firstName;
 
@@ -19,22 +18,19 @@ class ContactModel extends HiveObject {
   late Uint8List? avatar;
 
   @override
-  String toString() {
-    return "first name = $firstName\nlast name =$lastName\nphone Number=$phoneNumber";
-  }
+  String toString() =>
+      "first name=$firstName, last name=$lastName, phone Number=$phoneNumber";
 }
 
-class ContactModelAdapter extends TypeAdapter<ContactModel>{
+class ContactModelAdapter extends TypeAdapter<ContactModel> {
   static const _nullValue = "null";
 
   @override
-  ContactModel read(BinaryReader reader) {
-    return ContactModel()
-        ..firstName = reader.readString()
-        ..lastName  = reader.readString()
-        ..phoneNumber = reader.readString()
-        ..avatar = _decodeImage(reader.readString());
-  }
+  ContactModel read(BinaryReader reader) => ContactModel()
+      ..firstName = reader.readString()
+      ..lastName = reader.readString()
+      ..phoneNumber = reader.readString()
+      ..avatar = _decodeImage(reader.readString());
 
   @override
   final typeId = 0;
@@ -44,15 +40,15 @@ class ContactModelAdapter extends TypeAdapter<ContactModel>{
     writer.writeString(obj.firstName);
     writer.writeString(obj.lastName);
     writer.writeString(obj.phoneNumber);
-    if(obj.avatar != null) {
+    if (obj.avatar != null) {
       writer.writeString(base64Encode(obj.avatar!.toList()));
-    }else{
+    } else {
       writer.writeString(_nullValue);
     }
   }
 
   Uint8List? _decodeImage(String readString) {
-    if(readString == _nullValue)  return null;
+    if (readString == _nullValue) return null;
     return base64Decode(readString);
   }
 }

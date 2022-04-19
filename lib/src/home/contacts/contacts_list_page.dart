@@ -31,65 +31,66 @@ class _ContactsListPageState extends State<ContactsListPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: Hive.box<ContactModel>(Config.boxName).listenable(),
-        builder: (context, Box<ContactModel> box, widget) {
-          if (box.values.isEmpty) {
-            return const Text('No contacts');
-          } else {
-            List<ContactModel> _contacts = box.values.toList();
-            return ListView.builder(
-                itemCount: _contacts.length,
-                itemBuilder: (context, i) {
-                  var contact = _contacts[i];
-                  return ListTile(
-                      title: Text("${contact.firstName} ${contact.lastName}"),
-                      subtitle: Text(contact.phoneNumber),
-                      trailing: GestureDetector(
-                        child: const Icon(Icons.delete),
-                        onTap: () async {
-                          showDialog<String>(
-                              context: context,
-                              builder: (BuildContext context) => AlertDialog(
-                                    title: const Text(Strings.confirmDelete),
-                                    content: const Text(
-                                        Strings.confirmDeleteDescription),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, Strings.cancel),
-                                        child: const Text(Strings.cancel),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          contact.delete();
-                                          Navigator.pop(context, Strings.ok);
-                                        },
-                                        child: const Text(Strings.ok),
-                                      ),
-                                    ],
-                                  ));
-                        },
-                      ),
-                      leading: CircleAvatar(
-                          foregroundImage: _getAvatar(contact),
-                          child: Text(_getNameInitials(contact))),
+  Widget build(BuildContext context) => ValueListenableBuilder(
+      valueListenable: Hive.box<ContactModel>(Config.boxName).listenable(),
+      builder: (context, Box<ContactModel> box, widget) {
+        if (box.values.isEmpty) {
+          return const Text('No contacts');
+        } else {
+          List<ContactModel> _contacts = box.values.toList();
+          return ListView.builder(
+              itemCount: _contacts.length,
+              itemBuilder: (context, i) {
+                var contact = _contacts[i];
+                return ListTile(
+                    title: Text("${contact.firstName} ${contact.lastName}"),
+                    subtitle: Text(contact.phoneNumber),
+                    trailing: GestureDetector(
+                      child: const Icon(Icons.delete),
                       onTap: () async {
-                        Navigator.pushNamed(context, AddEditContactsPage.tag,
-                            arguments: contact);
-                      });
-                });
-          }
-        });
-  }
+                        showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                                  title: const Text(Strings.confirmDelete),
+                                  content: const Text(
+                                      Strings.confirmDeleteDescription),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(
+                                          context, Strings.cancel),
+                                      child: const Text(Strings.cancel),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        contact.delete();
+                                        Navigator.pop(context, Strings.ok);
+                                      },
+                                      child: const Text(Strings.ok),
+                                    ),
+                                  ],
+                                ));
+                      },
+                    ),
+                    leading: CircleAvatar(
+                        foregroundImage: _getAvatar(contact),
+                        child: Text(_getNameInitials(contact))),
+                    onTap: () async {
+                      Navigator.pushNamed(context, AddEditContactsPage.tag,
+                          arguments: contact);
+                    });
+              });
+        }
+      });
 
-  String _getNameInitials(ContactModel contact){
-    /// Not using string buffer because adding only a ruins/character
-    String toReturn = "";
-    if(contact.firstName.characters.isNotEmpty) toReturn += contact.firstName.characters.first.toUpperCase();
-    if(contact.lastName.characters.isNotEmpty) toReturn += contact.lastName.characters.first.toUpperCase();
-    return toReturn;
+  String _getNameInitials(ContactModel contact) {
+    StringBuffer toReturn = StringBuffer();
+    if (contact.firstName.characters.isNotEmpty) {
+      toReturn.write(contact.firstName.characters.first.toUpperCase());
+    }
+    if (contact.lastName.characters.isNotEmpty) {
+      toReturn.write(contact.lastName.characters.first.toUpperCase());
+    }
+    return toReturn.toString();
   }
 
   ImageProvider? _getAvatar(ContactModel contactModel) {
