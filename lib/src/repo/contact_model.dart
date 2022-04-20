@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:hive_flutter/adapters.dart';
 
+
 @HiveType(typeId: 0)
 class ContactModel extends HiveObject {
   @HiveField(0)
@@ -23,6 +24,7 @@ class ContactModel extends HiveObject {
 }
 
 class ContactModelAdapter extends TypeAdapter<ContactModel> {
+  /// represents no value is present for the avatar field
   static const _nullValue = "null";
 
   @override
@@ -36,12 +38,13 @@ class ContactModelAdapter extends TypeAdapter<ContactModel> {
   final typeId = 0;
 
   @override
-  void write(BinaryWriter writer, ContactModel obj) {
+  void write(BinaryWriter writer, ContactModel obj)  {
     writer.writeString(obj.firstName);
     writer.writeString(obj.lastName);
     writer.writeString(obj.phoneNumber);
-    if (obj.avatar != null) {
-      writer.writeString(base64Encode(obj.avatar!.toList()));
+    Uint8List? avatar = obj.avatar;
+    if (avatar != null) {
+      writer.writeString(base64Encode(avatar));
     } else {
       writer.writeString(_nullValue);
     }

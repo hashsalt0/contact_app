@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+typedef FutureCallback = Future Function();
+
+/// Class for handling contact permissions.
 class PermissionsManager {
   /// ask for permission
   /// [grantCallback] to perform a call back when permission is granted
-  Future<void> askPermissions(
-      {Function? grantCallback,
+  Future<bool> askPermissions(
+      {FutureCallback? grantCallback,
       required BuildContext context}) async {
     PermissionStatus permissionStatus = await getContactPermission();
     if (permissionStatus == PermissionStatus.granted) {
-      grantCallback?.call();
+      await grantCallback?.call();
     } else {
       handleInvalidPermissions(
           permissionStatus: permissionStatus, context: context);
     }
+    return true;
   }
 
   /// Retrieves the contact permission status

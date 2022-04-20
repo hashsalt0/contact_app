@@ -1,0 +1,4 @@
+enum ViewModelState {
+  idle,
+  processing
+}

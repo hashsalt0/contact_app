@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 
 import 'utils/permissions_manager.dart';
 
+/// Dependency injection using service locator pattern
 class ServiceLocator {
   final contactsRepository = ContactsRepository();
   final logger = Logger();
@@ -13,8 +14,8 @@ class ServiceLocator {
   static ServiceLocator? _instance;
 
   static ServiceLocator get instance {
-     _instance ??= ServiceLocator._();
-     return _instance!;
+    /// instantiating instance if it is null
+    _instance ??= ServiceLocator._();
+    return _instance!;
   }
-
 }

@@ -1,3 +1,4 @@
+/// User facing strings
 class Strings {
   static const appName = "Contacts App";
   static const labelCamera = "camera";
@@ -45,4 +46,8 @@ class Strings {
   static const cancel = "Cancel";
 
   static const ok = "OK";
+
+  static const loadingContactsErrorMessage = "Unable to load contacts";
+
+  static const fatalErrorMessage = "Error while adding contacts";
 }

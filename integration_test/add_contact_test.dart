@@ -1,14 +1,15 @@
 import 'dart:math';
 
+import 'package:contact_app/main.dart' as app;
 import 'package:contact_app/src/values/keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:contact_app/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   /// Test not working not able to resolve MissingPluginException
   group('end-to-end test', () {
     testWidgets('adding a contact', (WidgetTester tester) async {
@@ -26,12 +27,15 @@ void main() {
 
       await tester.enterText(find.byKey(Keys.inputFirstNameKey), firstName);
       await tester.enterText(find.byKey(Keys.inputLastNameKey), lastName);
-      await tester.enterText(find.byKey(Keys.inputPhoneNumberKey), '7022617211');
+      await tester.enterText(
+          find.byKey(Keys.inputPhoneNumberKey), '7022617211');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       var contacts = await FlutterContacts.getContacts();
-      expect(contacts.map((e) => e.displayName).contains("$firstName $lastName"
-          ""), true);
+      expect(
+          contacts.map((e) => e.displayName).contains("$firstName $lastName"
+              ""),
+          true);
     });
   });
 }

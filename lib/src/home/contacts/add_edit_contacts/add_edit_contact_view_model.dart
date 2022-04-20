@@ -1,4 +1,5 @@
 import 'package:contact_app/src/repo/contact_model.dart';
+import 'package:contact_app/src/repo/contact_state.dart';
 import 'package:contact_app/src/service_locator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,16 +7,17 @@ import 'package:image_picker/image_picker.dart';
 import '../../../values/strings.dart';
 
 class AddEditContactViewModel extends ChangeNotifier {
-
-  ContactModel _contact = ContactModel();
-
   String _appTitle = Strings.addContactPageTitle;
 
-  ContactModel get contact => _contact;
+  ContactState _contact = ContactState.empty();
 
-  set contact(ContactModel value) {
+  ContactState get contact => _contact;
+
+  set contact(ContactState value) {
     _contact = value;
-    if(value.isInBox) {
+
+    /// update the edit
+    if (value.isInBox) {
       _appTitle = Strings.editContactPageTitle;
     } else {
       _appTitle = Strings.addContactPageTitle;
@@ -24,22 +26,23 @@ class AddEditContactViewModel extends ChangeNotifier {
 
   String get title => _appTitle;
 
-  void setContactPhoto(XFile? imageFile) async {
+  void setContactPhoto(XFile? imageFile) {
     if (imageFile == null) return;
-    // POSSIBLE BUG
-    _contact.avatar = await imageFile.readAsBytes();
+    _contact.avatar = imageFile.readAsBytes();
     notifyListeners();
   }
 
-  /// returns true if contact is already present in hive or updating value
-  bool submit() {
+  /// Adds or updates the contact.
+  /// returns the message to be shown to user.
+  Future<String> submit() async {
     ServiceLocator.instance.logger.d("Submitting data to hive");
-    if(_contact.isInBox){
-      _contact.save();
-      return true;
-    }else{
-      ServiceLocator.instance.contactsRepository.addContact(_contact);
-      return false;
+    ContactModel contactModel = await _contact.toModel();
+    if (contactModel.isInBox) {
+      await contactModel.save();
+      return Strings.updateContactSuccessMessage;
+    } else {
+      await ServiceLocator.instance.contactsRepository.addContact(contactModel);
+      return Strings.createdContactSuccessMessage;
     }
   }
 

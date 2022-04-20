@@ -1,5 +1,6 @@
 import 'package:contact_app/src/dialog/image_chooser_dialog.dart';
 import 'package:contact_app/src/home/contacts/add_edit_contacts/add_edit_contact_view_model.dart';
+import 'package:contact_app/src/service_locator.dart';
 import 'package:contact_app/src/utils/validations.dart';
 import 'package:contact_app/src/values/keys.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
@@ -7,8 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../../repo/contact_state.dart';
 import '../../../values/strings.dart';
-import 'image_with_placeholder_icon.dart';
+import 'avatar_widget.dart';
 
 /// Screen for adding contacts
 class AddEditContactsPage extends StatelessWidget {
@@ -23,9 +25,11 @@ class AddEditContactsPage extends StatelessWidget {
     AddEditContactViewModel model =
         Provider.of<AddEditContactViewModel>(context);
 
+    ContactState contact = model.contact;
     final phoneNumberController = MaskedTextController(
-        mask: '0000-0000',
-        text: context.watch<AddEditContactViewModel>().contact.phoneNumber);
+        mask: Strings.phoneNumberMasks[contact.phoneNumber.length] ??
+            Strings.defaultPhoneMask,
+        text: contact.phoneNumber);
 
     phoneNumberController.beforeChange = (previous, next) {
       final unmasked = next.replaceAll(RegExp(Strings.digitsRegex), '');
@@ -41,8 +45,7 @@ class AddEditContactsPage extends StatelessWidget {
         keyboardType: TextInputType.text,
         inputFormatters: [LengthLimitingTextInputFormatter(45)],
         onChanged: model.setFirstName,
-        controller: TextEditingController(
-            text: context.watch<AddEditContactViewModel>().contact.firstName),
+        controller: TextEditingController(text: contact.firstName),
         autofocus: true,
         decoration: const InputDecoration(
             labelText: Strings.firstNameLabel, icon: Icon(Icons.person)),
@@ -54,8 +57,7 @@ class AddEditContactsPage extends StatelessWidget {
         keyboardType: TextInputType.text,
         inputFormatters: [LengthLimitingTextInputFormatter(45)],
         onChanged: model.setLastName,
-        controller: TextEditingController(
-            text: context.watch<AddEditContactViewModel>().contact.lastName),
+        controller: TextEditingController(text: contact.lastName),
         decoration: const InputDecoration(
             labelText: Strings.lastNameLabel, icon: Icon(Icons.person)),
         validator: Validations.nameValidation);
@@ -115,20 +117,17 @@ class AddEditContactsPage extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(context.watch<AddEditContactViewModel>().title),
+        title: Text(model.title),
         actions: <Widget>[
           SizedBox(
-            width: 80,
-            child: IconButton(
-              icon: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onPressed: () {
-                _submitFormAndPopBack(context, model);
-              },
-            ),
-          )
+              width: 80,
+              child: MaterialButton(
+                onPressed: () {
+                  _submitFormAndPopBack(context, model);
+                },
+                elevation: 0,
+                child: const Text(Strings.save),
+              ))
         ],
       ),
       body: content,
@@ -138,14 +137,18 @@ class AddEditContactsPage extends StatelessWidget {
   /// creates/updates a contact by validating and submitting form data;
   /// pop back to previous screen
   void _submitFormAndPopBack(
-      BuildContext context, AddEditContactViewModel model) {
+      BuildContext context, AddEditContactViewModel model) async {
     if (_formKey.currentState?.validate() == true) {
-      if (model.submit()) {
+      try {
+        /// Message to be show to user
+        String message = await model.submit();
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      } catch (e, stackTrace) {
+        ServiceLocator.instance.logger.e(e);
+        ServiceLocator.instance.logger.e(stackTrace);
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(Strings.updateContactSuccessMessage)));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(Strings.createdContactSuccessMessage)));
+            const SnackBar(content: Text(Strings.fatalErrorMessage)));
       }
       Navigator.pop(context);
     }

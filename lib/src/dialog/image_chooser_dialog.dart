@@ -11,8 +11,7 @@ import '../values/strings.dart';
 /// @see [ImagePicker]
 
 class ImageChooserDialog extends StatelessWidget {
-  const ImageChooserDialog({Key? key})
-      : super(key: key);
+  const ImageChooserDialog({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,9 @@ class ImageChooserDialog extends StatelessWidget {
             onPressed: () async {
               XFile? image = await picker.pickImage(source: ImageSource.camera);
               Navigator.of(context).pop();
-              Provider.of<AddEditContactViewModel>(context, listen: false).setContactPhoto(image);
+              Provider.of<AddEditContactViewModel>(context, listen: false)
+                  .setContactPhoto(image);
+
             },
             label: const Text(Strings.labelCamera),
           ),
@@ -46,7 +47,7 @@ class ImageChooserDialog extends StatelessWidget {
               XFile? image =
                   await picker.pickImage(source: ImageSource.gallery);
               Navigator.of(context).pop();
-              context.watch<AddEditContactViewModel>().setContactPhoto(image);
+              context.read<AddEditContactViewModel>().setContactPhoto(image);
             },
             label: const Text(Strings.labelGallery),
           )
